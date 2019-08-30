@@ -186,9 +186,9 @@ $(document).ready(function() {
     Bootstrap Select
     -------------------------------------*/
 
-    $('.selectpicker').selectpicker({
-      size: 10
-    });
+    // $('.selectpicker').selectpicker({
+    //   size: 10
+    // });
 
     /*-------------------------------------
     Owl Carousel

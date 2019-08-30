@@ -2,35 +2,12 @@ const {
   GraphQLID,
   GraphQLNonNull,
   GraphQLInt,
-  GraphQLFloat,
-  GraphQLInputObjectType,
-  GraphQLList
+  GraphQLList,
+  GraphQLObjectType
 } = require('graphql');
 
-const { User, ApartmentState, Apartment, ApartmentList } = require('./types');
-const { getUser, getApartment, listApartments, listUsers } = require('./resolvers');
-
-const RangeType = (name, type) => new GraphQLInputObjectType({
-  name,
-  fields: {
-    min: { type },
-    max: { type }
-  }
-});
-
-const ApartmentFilter = new GraphQLInputObjectType({
-  name: 'ApartmentFilter',
-  fields: {
-    state: { type: ApartmentState },
-    size: { type: GraphQLInt },
-    offset: { type: GraphQLInt },
-    latitude: { type: RangeType('latitude', GraphQLFloat) },
-    longitude: { type: RangeType('longitude', GraphQLFloat) },
-    area: { type: RangeType('area', GraphQLInt) },
-    rent: { type: RangeType('rent', GraphQLInt) },
-    rooms: { type: RangeType('rooms', GraphQLInt) },
-  }
-});
+const { Me, User, Job } = require('./types');
+const { getUser, getJobs, getTotalJobs, listUsers } = require('./resolvers');
 
 module.exports = {
   GetUser: {
@@ -47,34 +24,31 @@ module.exports = {
   },
 
   GetMe: {
-    type: User,
-    resolve: (obj, { }, { knex, user: { id } }) => getUser({ id }, { knex })
+    type: Me,
+    resolve: (obj, { }, { knex, user: { id } }) => getUser({ id }, { knex }).then(user => ({ user }))
   },
 
-  GetApartment: {
-    type: Apartment,
+  GetJobs: {
+    type: new GraphQLObjectType({
+      name: 'JobList',
+      fields: () => ({
+        list: { type: new GraphQLList(Job) },
+        total: { type: GraphQLInt }
+      })
+    }),
     args: {
-      id: { type: new GraphQLNonNull(GraphQLID) }
+      offset: { type: new GraphQLNonNull(GraphQLInt) },
+      size: { type: new GraphQLNonNull(GraphQLInt) },
     },
-    resolve: (obj, { id }, { knex, user: { isRealtor } = {} }) => {
-      if (!isRealtor) {
-        throw new Error('Unauthorized');
+    resolve: async (_, { offset, size }, { knex, user: { id, role } }) => {
+      if (role === 'candidate') {
+        const [list, total] = await Promise.all([
+          getJobs({ candidate_id: id, offset, size }, { knex }),
+          getTotalJobs({ candidate_id: id }, { knex })
+        ]);
+        return { list, total };
       }
-      return getApartment({ id }, { knex });
-    }
-  },
-
-  ListApartments: {
-    type: ApartmentList,
-    args: {
-      data: { type: new GraphQLNonNull(ApartmentFilter) }
-    },
-    resolve: (obj, { data }, { knex, user: { id, isRealtor } = {} }) => {
-      if (id) {
-        return listApartments({ ...data, state: isRealtor ? undefined : 'available' }, { knex });
-      } else {
-        throw new Error('Unauthorized');
-      }
+      throw new Error('Unauthorized');
     }
   },
 

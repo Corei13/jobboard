@@ -1,15 +1,12 @@
 const {
-  GraphQLInputObjectType,
   GraphQLString,
   GraphQLNonNull,
-  GraphQLInt,
-  GraphQLFloat,
   GraphQLID
 } = require('graphql');
 
-const { SignUpData, SignInData, Token, Status } = require('./types');
-const { signToken, hash, verify } = require('./utils');
-const { getUser } = require('./resolvers');
+const { SignUpData, SignInData, Token, Status, CandidateProfile, CandidateProfileData, CompanyProfileData } = require('./types');
+const { signToken, hash, verify, knex$update } = require('./utils');
+const { getUser, getCandidateProfile } = require('./resolvers');
 
 module.exports = {
   SignUp: {
@@ -19,7 +16,7 @@ module.exports = {
     },
     resolve: async (obj, { data: { email, firstName, lastName, password, role } }, { knex }) => {
       try {
-        await knex('users').insert({
+        const [id] = await knex('users').insert({
           email,
           first_name: firstName,
           last_name: lastName,
@@ -27,9 +24,18 @@ module.exports = {
           role
         });
 
+        if (role === 'candidate') {
+          await knex('candidates').insert({ user_id: id });
+        } else if (role === 'employer') {
+          await knex('employers').insert({ user_id: id });
+          const [companyId] = await knex('companies').insert({ created_by: id });
+          await knex('affiliations').insert({ user_id: id, company_id: companyId });
+          await knex('jobs').insert({ company_id: companyId, created_by: id });
+        }
+
         const user = await getUser({ email }, { knex });
-        user.token = await signToken(user);
-        return user;
+        const token = await signToken(user);
+        return { me: { user }, token };
 
       } catch (err) {
         if (err.code === 'ER_DUP_ENTRY') {
@@ -52,8 +58,8 @@ module.exports = {
       if (!user) {
         throw new Error(`Invalid email address.`);
       } else if (await verify(password, user.password)) {
-        user.token = await signToken(user);
-        return user;
+        const token = await signToken(user);
+        return { me: { user }, token };
       } else {
         throw new Error(`Invalid password!`);
       }
@@ -78,4 +84,124 @@ module.exports = {
       return { success: true };
     }
   },
+
+  SaveCandidateProfile: {
+    type: Status,
+    args: {
+      data: { type: new GraphQLNonNull(CandidateProfileData) }
+    },
+    resolve: async (_, { data }, { user: { id, role }, knex }) => {
+      if (role !== 'candidate') {
+        throw new Error('Unauthorized');
+      }
+
+      const {
+        firstName,
+        lastName,
+
+        linkedin,
+
+        location,
+        isUsResident,
+        isSpecialCountry,
+        isUsStudent,
+        currentVisa,
+
+        remote,
+
+        status
+      } = data;
+
+      await knex$update(knex, 'users', { id }, { first_name: firstName, last_name: lastName });
+
+      await knex$update(knex, 'candidates', { user_id: id }, {
+        linkedin,
+        location,
+        us_resident: isUsResident,
+        special_country: isSpecialCountry,
+        us_student: isUsStudent,
+        current_visa: currentVisa,
+
+        remote,
+        status: JSON.stringify(status)
+      });
+      return { success: true };
+    }
+  },
+
+  SaveCompanyProfile: {
+    type: Status,
+    args: {
+      companyId: { type: new GraphQLNonNull(GraphQLID) },
+      jobId: { type: new GraphQLNonNull(GraphQLID) },
+      data: { type: new GraphQLNonNull(CompanyProfileData) }
+    },
+    resolve: async (_, { companyId, jobId, data }, { user: { role }, knex }) => {
+      if (role !== 'employer') {
+        throw new Error('Unauthorized');
+      }
+
+      // TODO: check if user is associated with companyId and jobId
+
+      const {
+        name,
+        url,
+        logo,
+        about,
+        location,
+        description,
+        size,
+        remote,
+
+        status
+      } = data;
+
+      await knex$update(
+        knex, 'companies', { id: companyId },
+        { name, size, url, logo, about }
+      );
+
+      await knex$update(
+        knex, 'jobs', { id: jobId },
+        { location, description, remote, status: JSON.stringify(status), available: status.Job && status.Company }
+      );
+      return { success: true };
+    }
+  },
+
+  Apply: {
+    type: Status,
+    args: {
+      jobId: { type: new GraphQLNonNull(GraphQLID) }
+    },
+    resolve: async (_, { jobId }, { user: { id: userId, role }, knex }) => {
+      console.log({ role });
+      if (role !== 'candidate') {
+        throw new Error(`You have to be a candidate to apply for jobs`);
+      }
+
+      const job = await knex('jobs')
+        .select('available')
+        .where({ id: jobId })
+        .first();
+
+      console.log({ job });
+      
+      if (!job || !job.available) {
+        throw new Error(`Job ${jobId} is not available`);
+      }
+
+      try {
+        await knex('applications')
+          .insert({ user_id: userId, job_id: jobId });
+          return { success: true };
+      } catch (err) {
+        if (err.code === 'ER_DUP_ENTRY') {
+          throw new Error(`You've already applied for job ${jobId}`);
+        } else {
+          throw err;
+        }
+      }
+    }
+  }
 };

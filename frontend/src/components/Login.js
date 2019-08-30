@@ -5,12 +5,13 @@ import { Link, withRouter } from 'react-router-dom';
 import Context from '../context';
 import { signin } from '../actions';
 import { hash, storeToken } from '../utils';
+import Alert from './helpers/Alert';
 
 const Login = ({ history }) => {
   const [validated, setValidated] = React.useState(false);
-  const { user, updateUser } = React.useContext(Context.Auth);
+  const { updateUser } = React.useContext(Context.Auth);
   const [saving, setSaving] = React.useState(false);
-  const [alert, setAlert] = React.useState(null);
+  const [alert, setAlert] = React.useState([]);
 
   const email = React.useRef(null);
   const password = React.useRef(null);
@@ -37,12 +38,6 @@ const Login = ({ history }) => {
     }
   }
 
-  React.useEffect(() => {
-    if (user) {
-      history.push('/');
-    }
-  }, [user, history]);
-
   return (
     <div className="padding-top-90 padding-bottom-90 access-page-bg">
       <Container>
@@ -52,6 +47,7 @@ const Login = ({ history }) => {
               <div className="form-header">
                 <h5><i data-feather="edit"></i>Login</h5>
               </div>
+              <Alert state={[alert, setAlert]} />
               <Form noValidate validated={validated} onSubmit={e => { e.persist(); handleSubmit(e) }} disabled>
                 <Form.Group>
                   <Form.Control ref={email} required size="lg" type="email" placeholder="Email Address" />

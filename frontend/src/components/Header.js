@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
-import { Container, Row, Col, Button, Modal, Nav } from 'react-bootstrap';
-import { Link, NavLink, withRouter } from 'react-router-dom';
+import React from 'react';
+import { Container, Row, Col } from 'react-bootstrap';
+import { Link, withRouter } from 'react-router-dom';
 
 import Context from '../context';
 import { signout } from '../actions';
@@ -26,7 +26,17 @@ const Header = ({ history, ...rest }) => {
                         <button type="button" onClick={() => history.push('/login')}>Login</button>
                         <button type="button" onClick={() => history.push('/register')}>Register</button>
                       </> :
+                      <>
+                        {
+                          user.role === 'candidate' &&
+                            <button type="button" onClick={() => history.push('/application')}>Update Profile</button>
+                        }
+                        {
+                          user.role === 'employer' &&
+                            <button type="button" onClick={() => history.push('/company-details')}>Update Company Info</button>
+                        }
                         <button type="button" onClick={() => { signout(); updateUser(); }}>Logout</button>
+                      </>
                   }
                 </div>
               </div>

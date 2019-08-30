@@ -50,4 +50,11 @@ const verify = (password, combined) => {
   );
 };
 
-module.exports = { signToken, decodeJwt, hash, verify };
+const knex$update = (knex, table, where, fields) => {
+  const updates = JSON.parse(JSON.stringify(fields));
+  if (Object.keys(updates).length) {
+    return knex(table).where(where).update(updates);
+  }
+};
+
+module.exports = { signToken, decodeJwt, hash, verify, knex$update };

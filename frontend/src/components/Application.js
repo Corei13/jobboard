@@ -1,13 +1,73 @@
 import React from 'react';
-import { Container, Row, Col, Form, Modal, Nav } from 'react-bootstrap';
+import { Container, Row, Col, Form, Button, Spinner, InputGroup } from 'react-bootstrap';
+import { withRouter } from 'react-router-dom';
 
-import Title from './helpers/Title'
-import Sidebar from './helpers/Sidebar'
+import Title from './helpers/Title';
+import Sidebar from './helpers/Sidebar';
+import Loader from './helpers/Loader';
+import Alert from './helpers/Alert';
+import { Text, TextInline, Select } from './helpers/Input';
+import { saveCandidateProfile, getCandidateProfile } from '../actions';
 
-const FullName = () => (
-  <Form.Group>
-    <input type="text" className="form-control" placeholder="Your Name" />
-  </Form.Group>
+const Location = ({ location, isUsResident, isSpecialCountry, isUsStudent, currentVisa, remote }) => (
+  <>
+    <Text
+      state={location}
+      title="Where do you currently reside?"
+      required
+    />
+    <Select
+      state={isUsResident}
+      title="Are you a US citizen or Green Card holder?"
+      bool={true}
+    />
+    <Select
+      state={isSpecialCountry}
+      title="Are you a citizen of Canada, Mexico, Singapore, Chile, or Australia? (You may be eligible for an H-1B1/E-3/TN visa)"
+      bool={true}
+    />
+    <Select
+      state={isUsStudent}
+      title="Are you a current student in the US who has completed at least one year of study? (You may be eligible for OPT/CPT/F1)"
+      bool={true}
+    />
+    <Select
+      state={currentVisa}
+      title="What kind of US visa do you currently have, if any?"
+      options={[
+        ['O-1', 'O1'],
+        ['H-1B', 'H1B'],
+        ['H-1B1/E-3/TN', 'H1B1_E3_TN'],
+        ['OPT/CPT/F1', 'OPT_CPT_F1'],
+        ['None of the above or I don\'t know', 'NA'],
+      ]}
+    />
+    <Select
+      state={remote}
+      title="Are you open to working remotely?"
+      options={[
+        ["I don't want to work remotely", 'NO'],
+        ["I'm open to working remotely", 'OPEN'],
+        ["I only want to work remotely", 'ONLY']
+      ]}
+    />
+  </>
+)
+
+const PersonalInfo = ({ firstName, lastName, linkedin }) => (
+  <>
+    <Form.Group>
+      <InputGroup>
+        <TextInline state={firstName} title="First Name" required />
+        <TextInline state={lastName} title="Last Name" required />
+      </InputGroup>
+    </Form.Group>
+    <Form.Group>
+      <InputGroup>
+        <TextInline state={linkedin} title="LinkedIn URL" />
+      </InputGroup>
+    </Form.Group>
+  </>
 );
 
 const Informations = () => (
@@ -110,11 +170,11 @@ const Education = () => <>
   </div>
 </>;
 
-const Single = ({ title, Component }) => (
+const Single = ({ title, Component, states }) => (
   <Row>
     <Form.Label column={true} md={3} >{title}</Form.Label>
     <Col md={9}>
-      <Component />
+      <Component {...states} />
     </Col>
   </Row>
 );
@@ -140,60 +200,129 @@ const Multi = ({ title, Component }) => {
   );
 };
 
-const steps = {
-  'Full Name': FullName,
-  'Informations': Informations,
-  'About You': AboutYou,
-}
-
-const Application = () => {
+const Application = ({ history }) => {
   const [step, setStep] = React.useState(0);
+  const [validated, setValidated] = React.useState(false);
+  const [saving, setSaving] = React.useState(false);
+  const [alert, setAlert] = React.useState([]);
+  const [profile, setProfile] = React.useState({});
+  const [loading, setLoading] = React.useState(true);
 
-  const steps = {
-    Alice: [FullName, Single],
-    Bob: [Informations, Single],
-    Education: [Education, Multi],
+  const Forms = {
+    PersonalInfo,
+    Location
   };
 
-  const [title, [Form, Type]] = Object.entries(steps)[step];
+  const steps = [
+    { key: 'PersonalInfo', title: 'Personal Info', type: Single, fields: ['firstName', 'lastName', 'linkedin'] },
+    { key: 'Location', title: 'Location', type: Single, fields: ['location', 'isUsResident', 'isSpecialCountry', 'isUsStudent', 'currentVisa', 'remote'] }
+  ];
+
+  React.useEffect(() => {
+    (async () => {
+      try {
+        const profile = await getCandidateProfile();
+        setProfile(profile);
+
+        const { status = {} } = profile;
+        const key = steps.findIndex(s => !status[s.key]);
+        setStep(key === -1 ? steps.length - 1 : key);
+
+        setLoading(false);
+      } catch (err) {
+        setAlert(['danger', err.message]);
+      }
+    })();
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const handleSubmit = async (e, key, states) => {
+    e.preventDefault();
+    setValidated(true);
+    const data = states
+      .reduce((o, k) => console.log(k, profile[k]) || ({ ...o, [k]: profile[k] }), {});
+    console.log({ states, data });
+    const form = e.target;
+    if (form.checkValidity() === false) {
+      form.reportValidity();
+      return e.stopPropagation();
+    }
+    setSaving(true);
+    try {
+      const newStatus = { ...profile.status, [key]: true };
+      await saveCandidateProfile({ ...data, status: newStatus });
+      setProfile({ ...profile, status: newStatus });
+      if (step === steps.length - 1) {
+        history.push('/jobs');
+      } else {
+        setStep(step + 1);
+      }
+      setSaving(false);
+    } catch (err) {
+      setAlert(['danger', err.message]);
+      setSaving(false);
+      console.error(err);
+    }
+  }
+
+  const { key, title, SubForm = Forms[key], type: Type, fields } = steps[step];
+  console.log(steps[step]);
 
   return (
     <>
       <Title>Application</Title>
       <div className="alice-bg section-padding-bottom">
-        <div className="container no-gliters">
-          <div className="row no-gliters">
-            <div className="col">
+        <Container>
+          <Row>
+            <Col>
               <div className="post-container">
                 <div className="post-content-wrapper">
-                  <form action="#" className="job-post-form">
-                    <div className="basic-info-input">
-                      <Type title={title} Component={Form} />
-                      <div className="form-group row">
-                        <label className="col-md-3 col-form-label"></label>
-                        <div className="col-md-9">
-                          {
-                            step === Object.keys(steps).length - 1
-                              ? <button className="button" onClick={console.log('submit')}>Submit</button>
-                              : <button className="button" onClick={() => setStep(step + 1)}>Next</button>
-                          }
-                        </div>
-                      </div>
-                    </div>
-                  </form>
+                  <Alert state={[alert, setAlert]} />
+                  {
+                    loading
+                      ? <Loader style={{ height: '100%' }}/>
+                      : (
+                        <Form
+                          className="job-post-form"
+                          noValidate validated={validated}
+                          onSubmit={e => { e.persist(); handleSubmit(e, key, fields) }}
+                          disabled
+                        >
+                          <div className="basic-info-input">
+                            <Type title={title} Component={SubForm} states={fields.reduce((o, k) => ({ ...o, [k]: [profile[k], v => setProfile({ ...profile, [k]: v })] }), {})} />
+                            <div className="form-group row">
+                              <label className="col-md-3 col-form-label"></label>
+                              <Col md={9}>
+                                <Button className="button" size="lg" variant="primary" type="submit" disabled={saving}>
+                                  {saving ? <>
+                                    <Spinner
+                                      as="span"
+                                      animation="grow"
+                                      size="sm"
+                                      role="status"
+                                      aria-hidden="true"
+                                    /> Please wait...
+                                  </> : <>Save</>
+                                  }
+                                </Button>
+                              </Col>
+                            </div>
+                          </div>
+                        </Form>
+                      )
+                  }
                 </div>
                 <Sidebar
                   selected={step}
-                  menu={Object.keys(steps)}
-                  onSelect={key => console.log('selected', key)}
+                  menu={steps.map(({ key, title }, index) => ({ title, done: profile.status && profile.status[key], active: index === step }))}
+                  onSelect={step => setStep(step)}
                 />
               </div>
-            </div>
-          </div>
-        </div>
+            </Col>
+          </Row>
+        </Container>
       </div>
     </>
   );
 };
 
-export default Application;
+export default withRouter(Application);

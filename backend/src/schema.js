@@ -1,12 +1,14 @@
 const { GraphQLSchema, GraphQLObjectType } = require('graphql');
 
-const { GetApartment, ListApartments, ListUsers, GetUser } = require('./queries');
-const { SignUp, SignIn, NewApartment, UpdateApartment, DeleteApartment, VerifyEmail, UpdateUser } = require('./mutations');
+const { GetUser, GetMe, GetJobs } = require('./queries');
+const { SignUp, SignIn, SaveCandidateProfile, SaveCompanyProfile, Apply } = require('./mutations');
 
 const RootQueryType = new GraphQLObjectType({
   name: 'RootQuery',
   fields: () => ({
     user: GetUser,
+    me: GetMe,
+    jobs: GetJobs
   })
 });
 
@@ -15,9 +17,9 @@ const RootMutationType = new GraphQLObjectType({
   fields: () => ({
     SignUp,
     SignIn,
-
-    // SaveCandidateProfile,
-    // SaveCompanyProfile,
+    SaveCandidateProfile,
+    SaveCompanyProfile,
+    Apply
   })
 });
 

@@ -5,12 +5,13 @@ import { Link, withRouter } from 'react-router-dom';
 import Context from '../context';
 import { signup } from '../actions';
 import { hash, storeToken } from '../utils';
+import Alert from './helpers/Alert';
 
 const Register = ({ history }) => {
   const [validated, setValidated] = React.useState(false);
-  const { user, updateUser } = React.useContext(Context.Auth);
+  const { updateUser } = React.useContext(Context.Auth);
   const [saving, setSaving] = React.useState(false);
-  const [alert, setAlert] = React.useState(null);
+  const [alert, setAlert] = React.useState([]);
   const [role, setRole] = React.useState('candidate');
 
   const firstName = React.useRef(null);
@@ -44,12 +45,6 @@ const Register = ({ history }) => {
     }
   }
 
-  React.useEffect(() => {
-    if (user) {
-      history.push('/');
-    }
-  }, [user, history]);
-
   return (
     <div className="padding-top-90 padding-bottom-90 access-page-bg">
       <Container>
@@ -59,6 +54,7 @@ const Register = ({ history }) => {
               <div className="form-header">
                 <h5><i data-feather="edit"></i>Register Account</h5>
               </div>
+              <Alert state={[alert, setAlert]} />
               <Form noValidate validated={validated} onSubmit={e => { e.persist(); handleSubmit(e) }} disabled>
                 <div className="account-type">
                   <label htmlFor="idRegisterCan">

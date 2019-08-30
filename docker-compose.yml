@@ -1,0 +1,51 @@
+version: '2'
+services:
+  proxy:
+    container_name: jobboard_proxy
+    build:
+      context: ./proxy
+      dockerfile: Dockerfile
+    ports:
+      - "4040:4040"
+    restart: always
+
+  frontend:
+    container_name: jobboard_frontend
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    ports:
+      - "4010:80"
+    restart: always
+
+  backend:
+    container_name: jobboard_backend
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    ports:
+      - "4015:4015"
+    links:
+      - db
+    environment:
+      - MYSQL_HOST=db
+      - MYSQL_DATABASE=bcboard_v1
+      - MYSQL_USER=root
+      - MYSQL_PASSWORD=
+      - JWT_KEY=whodareswins
+    restart: always
+  
+  db:
+    container_name: jobboard_db
+    image: mysql:5.7
+    environment:
+      - MYSQL_DATABASE=bcboard_v1
+      - MYSQL_ALLOW_EMPTY_PASSWORD=yes
+      - MYSQL_USER=root
+    command: mysqld --sql_mode=NO_ENGINE_SUBSTITUTION,NO_AUTO_VALUE_ON_ZERO
+    expose:
+      - "3306"
+    ports:
+      - "3306:3306"
+  
+  

@@ -19,6 +19,10 @@ module.exports = knex({
         const value = field.string();
         return value ? (value === '1') : null;
       }
+      if (field.type == 'JSON') {
+        const value = field.string();
+        return value === null ? {} : JSON.parse(value);
+      }
       return next();
     },
     timezone: 'UTC'

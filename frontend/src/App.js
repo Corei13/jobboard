@@ -13,6 +13,7 @@ import Header from './components/Header';
 import Login from './components/Login';
 import Register from './components/Register';
 import Application from './components/Application';
+import CompanyDetails from './components/CompanyDetails';
 import Listing from './components/Listing';
 // import Apartments from './components/Apartments';
 // import Admin from './components/Admin';
@@ -31,9 +32,10 @@ const App = () => {
 
         <Route exact path="/" render={() => <Redirect to="/home" />} />
         <Route path="/home" component={Home} />
-        <Route path="/login" component={Login} />
-        <Route path="/register" component={Register} />
-        <Route path="/application" component={Application} />
+        <Route path="/login" render={() => user ? <Redirect to="/" /> : <Login />} />
+        <Route path="/register" component={() => user ? <Redirect to="/" /> : <Register />} />
+        <Route path="/application" render={() => user && user.role === 'candidate' ? <Application />: <Redirect to="/login" />} />
+        <Route path="/company-details" render={() => user && user.role === 'employer' ? <CompanyDetails />: <Redirect to="/login" />} />
         <Route path="/jobs" component={Listing} />
 
       </Router>

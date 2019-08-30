@@ -10,7 +10,7 @@ app.use(cors());
 
 const getToken = async req => {
   if (!(req.headers && req.headers.authorization)) {
-    throw new Error(`Invalid/missing token.`)
+    throw new Error(`Invalid/missing token.`);
   }
 
   const token = await decodeJwt(req);
@@ -20,10 +20,10 @@ const getToken = async req => {
   }
 
   return token;
-}
+};
 
-app.use('/graphql', cors(), async (req, res, next) => {
-  const user = await getToken().catch(() => null);
+app.use('/graphql', cors(), async (req, res) => {
+  const user = await getToken(req).catch(() => ({}));
   return graphql({
     schema: Schema,
     graphiql: true,

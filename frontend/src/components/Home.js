@@ -1,7 +1,5 @@
 import React from 'react';
 
-import Header from './Header';
-
 const Banner = () => (
   <div className="banner banner-2 banner-2-bg">
     <div className="container">
