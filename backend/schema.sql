@@ -19,12 +19,9 @@ create table candidates (
   linkedin varchar(128) default null,
 
   location varchar(128) default null,
-  us_resident tinyint(1) default null,
-  special_country tinyint(1) default null,
-  us_student tinyint(1) default null,
-  current_visa varchar(32) default null,
+  citizenship JSON,
   
-  remote varchar(32) default null,
+  remote tinyint(1) default null,
 
   status JSON,
 
@@ -47,7 +44,7 @@ create table companies (
   size varchar(32) default null,
   url varchar(32) default null,
   logo varchar(64) default null,
-  about text default null,
+  about text default null,  
 
   created_by int not null,
   created_at timestamp not null default current_timestamp,
@@ -62,6 +59,11 @@ create table jobs (
   available tinyint(1) default 0,
   location varchar(128) default null,
   remote varchar(32) default null,
+  responsibilities text default null,
+  min_experience int default null,
+  education varchar(32) default null,
+  min_salary int default null,
+  max_salary int default null,
 
   description text default null,
 
@@ -90,6 +92,8 @@ create table applications (
   id int primary key auto_increment,
   user_id int not null,
   job_id int not null,
+
+  details JSON,
 
   created_at timestamp not null default current_timestamp,
 
