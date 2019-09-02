@@ -24,11 +24,13 @@ const getToken = async req => {
 
 app.use('/graphql', cors(), async (req, res) => {
   const user = await getToken(req).catch(() => ({}));
-  return graphql({
-    schema: Schema,
-    graphiql: true,
-    context: { knex, req, user }
-  })(req, res);
+  return knex.transaction(trx =>
+    graphql({
+      schema: Schema,
+      graphiql: true,
+      context: { knex: trx, req, user }
+    })(req, res)
+  );
 });
 
 app.listen(4015, () => console.log('Express GraphQL Server Now Running On localhost:4015/graphql'));
