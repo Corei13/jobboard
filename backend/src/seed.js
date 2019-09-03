@@ -18,39 +18,36 @@ const users = [
   { id: 206, role: 'employer', first_name: 'XVG', last_name: 'Six', email: 'six@xvg.io', password: '00000008000186a0f9e2d46e2317cf39496a1e5eb9ae3cf2db1a210951929291' },
 ];
 
-const visa = () => random.arrayElement(['O1', 'H1B', 'H1B1_E3_TN', 'OPT_CPT_F1', 'NA']);
-const remote = () => random.arrayElement(['NO', 'OPEN', 'ONLY']);
+const citizenship = () => JSON.stringify({
+    us_citizen: random.boolean(),
+    us_green_card: random.boolean(),
+    us_work_visa: random.boolean(),
+    us_student: random.boolean(),
+    uk_eu_citizen: random.boolean(),
+    special_citizen: random.boolean(),
+});
 
 const candidates = [
   {
     user_id: 101,
     linkedin: `https://www.linkedin.com/in/${internet.userName()}/`,
     location: `${address.city()}, ${address.country()}`,
-    us_resident: random.boolean(),
-    special_country: random.boolean(),
-    us_student: random.boolean(),
-    current_visa: visa(),
-    remote: remote()
+    citizenship: citizenship(),
+    remote: random.boolean()
   },
   {
     user_id: 102,
     linkedin: `https://www.linkedin.com/in/${internet.userName()}/`,
     location: `${address.city()}, ${address.country()}`,
-    us_resident: random.boolean(),
-    special_country: random.boolean(),
-    us_student: random.boolean(),
-    current_visa: visa(),
-    remote: remote()
+    citizenship: citizenship(),
+    remote: random.boolean()
   },
   {
     user_id: 103,
     linkedin: `https://www.linkedin.com/in/${internet.userName()}/`,
     location: `${address.city()}, ${address.country()}`,
-    us_resident: random.boolean(),
-    special_country: random.boolean(),
-    us_student: random.boolean(),
-    current_visa: visa(),
-    remote: remote()
+    citizenship: citizenship(),
+    remote: random.boolean()
   }
 ];
 
@@ -76,11 +73,11 @@ const affiliations = [
 ];
 
 const jobs = [
-  { id: 10101, company_id: 101, available: true, location: 'NY', remote: remote(), description: lorem.paragraphs(), created_by: 202 },
-  { id: 10201, company_id: 102, available: true, location: 'LA', remote: remote(), description: lorem.paragraphs(), created_by: 203 },
-  { id: 10301, company_id: 103, available: true, location: 'DC', remote: remote(), description: lorem.paragraphs(), created_by: 204 },
-  { id: 10401, company_id: 104, available: true, location: 'IDK', remote: remote(), description: lorem.paragraphs(), created_by: 205 },
-  { id: 10501, company_id: 105, available: true, location: 'Neverland', remote: remote(), description: lorem.paragraphs(), created_by: 206 },
+  { id: 10101, company_id: 101, available: true, location: 'NY', remote: random.boolean(), description: lorem.paragraphs(), created_by: 202 },
+  { id: 10201, company_id: 102, available: true, location: 'LA', remote: random.boolean(), description: lorem.paragraphs(), created_by: 203 },
+  { id: 10301, company_id: 103, available: true, location: 'DC', remote: random.boolean(), description: lorem.paragraphs(), created_by: 204 },
+  { id: 10401, company_id: 104, available: true, location: 'IDK', remote: random.boolean(), description: lorem.paragraphs(), created_by: 205 },
+  { id: 10501, company_id: 105, available: true, location: 'Neverland', remote: random.boolean(), description: lorem.paragraphs(), created_by: 206 },
 ];
 
 const applications = [
