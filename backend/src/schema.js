@@ -1,6 +1,6 @@
 const { GraphQLSchema, GraphQLObjectType } = require('graphql');
 
-const { GetUser, GetMe, GetJobs } = require('./queries');
+const { GetUser, GetMe, GetJobs, GetJob } = require('./queries');
 const { SignUp, SignIn, SaveCandidateProfile, SaveCompanyProfile, Apply } = require('./mutations');
 
 const RootQueryType = new GraphQLObjectType({
@@ -8,7 +8,8 @@ const RootQueryType = new GraphQLObjectType({
   fields: () => ({
     user: GetUser,
     me: GetMe,
-    jobs: GetJobs
+    jobs: GetJobs,
+    job: GetJob,
   })
 });
 

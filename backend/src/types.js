@@ -20,14 +20,13 @@ const $enum = (name, values) => new GraphQLEnumType({
 });
 
 const UserRole = $enum('UserRole', ['candidate', 'employer', 'admin']);
-const Remote = $enum('Remote', ['NO', 'OPEN', 'ONLY']);
 
 const SignUpData = new GraphQLInputObjectType({
   name: 'SignUpData',
   fields: {
     email: { type: GraphQLNonNull(GraphQLString) },
-    firstName: { type: GraphQLNonNull(GraphQLString) },
-    lastName: { type: GraphQLNonNull(GraphQLString) },
+    first_name: { type: GraphQLNonNull(GraphQLString) },
+    last_name: { type: GraphQLNonNull(GraphQLString) },
     password: { type: GraphQLNonNull(GraphQLString) },
     role: { type: GraphQLNonNull(UserRole) }
   }
@@ -84,8 +83,8 @@ const User = new GraphQLObjectType({
   fields: () => ({
     id: { type: GraphQLNonNull(GraphQLID) },
     email: { type: GraphQLNonNull(GraphQLString) },
-    firstName: { type: GraphQLNonNull(GraphQLString) },
-    lastName: { type: GraphQLNonNull(GraphQLString) },
+    first_name: { type: GraphQLNonNull(GraphQLString) },
+    last_name: { type: GraphQLNonNull(GraphQLString) },
     role: { type: GraphQLNonNull(UserRole) }
   })
 });
@@ -94,19 +93,21 @@ const CandidateProfileFields = {
   linkedin: { type: GraphQLString },
 
   location: { type: GraphQLString },
-  isUsResident: { type: GraphQLBoolean },
-  isSpecialCountry: { type: GraphQLBoolean },
-  isUsStudent: { type: GraphQLBoolean },
-  currentVisa: { type: $enum('CurrentVisa', ['O1', 'H1B', 'H1B1_E3_TN', 'OPT_CPT_F1', 'NA']) },
+  remote: { type: GraphQLBoolean },
 
-  remote: { type: Remote },
+  us_citizen: { type: GraphQLBoolean },
+  us_green_card: { type: GraphQLBoolean },
+  us_work_visa: { type: GraphQLBoolean },
+  us_student: { type: GraphQLBoolean },
+  uk_eu_citizen: { type: GraphQLBoolean },
+  special_citizen: { type: GraphQLBoolean },
 };
 
 const CandidateProfileData = new GraphQLInputObjectType({
   name: 'CandidateProfileData',
   fields: {
-    firstName: { type: GraphQLString },
-    lastName: { type: GraphQLString },
+    first_name: { type: GraphQLString },
+    last_name: { type: GraphQLString },
     ...CandidateProfileFields,
     status: {
       type: new GraphQLInputObjectType({
@@ -147,7 +148,7 @@ const CompanyProfileFields = {
 
   size: { type: $enum('CompanySize', ['_5', '_5_10', '_10_50', '_50_100', '_100_']) },
 
-  remote: { type: Remote },
+  remote: { type: GraphQLBoolean },
 };
 
 
@@ -192,7 +193,7 @@ const Job = new GraphQLObjectType({
   fields: () => ({
     id: { type: GraphQLNonNull(GraphQLID) },
     location: { type: GraphQLString },
-    remote: { type: Remote },
+    remote: { type: GraphQLBoolean },
     description: { type: GraphQLString },
     applied: { type: GraphQLBoolean },
     company: {
