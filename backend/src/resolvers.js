@@ -15,20 +15,13 @@ const listApartments = ({ state, size = 10, offset = 0, ...filters }, { knex }) 
     .limit(size)
     .offset(offset);
 
-const transformUser = ({ first_name, last_name, ...rest }) => ({
-  firstName: first_name,
-  lastName: last_name,
-  ...rest
-});
-
 const listUsers = ({ size, offset }, { knex }) =>
-  knex('users').orderBy('id').limit(size).offset(offset).then(users => users.map(transformUser));
+  knex('users').orderBy('id').limit(size).offset(offset);
 
 const getUser = ({ id, email }, { knex }) =>
   knex('users')
     .where({ ...(id && { id }), ...(email && { email }) })
-    .first()
-    .then(res => res && transformUser(res));
+    .first();
 
 const getCompany = ({ id, created_by }, { knex }) =>
   knex('companies')
@@ -37,14 +30,10 @@ const getCompany = ({ id, created_by }, { knex }) =>
 
 const getCandidateProfile = ({ id }, { knex }) =>
   knex('candidates')
-    .select('linkedin', 'location', 'remote', 'status', {
-      isUsResident: 'us_resident',
-      isSpecialCountry: 'special_country',
-      isUsStudent: 'us_student',
-      currentVisa: 'current_visa',
-    })
+    .select('linkedin', 'location', 'remote', 'citizenship', 'status')
     .where({ user_id: id })
-    .first();
+    .first()
+    .then(({ citizenship, ...rest }) => ({ ...rest, ...citizenship }));
 
 const getJobDetails = ({ employer_id }, { knex }) =>
   knex('jobs as j')
