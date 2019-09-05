@@ -52,6 +52,25 @@ module.exports = {
     }
   },
 
+  GetJob: {
+    type: Job,
+    args: {
+      companyId: { type: new GraphQLNonNull(GraphQLID) }
+    },
+    resolve: async (_, { companyId }, { knex, user: { id, role } }) => {
+      const [job] = await getJobs({
+        company_id: companyId,
+        candidate_id: role === 'candidate' ? id : null
+      }, { knex });
+      
+      if (!job) {
+        throw new Error(`Not found!`);
+      }
+
+      return job;
+    }
+  },
+
   ListUsers: {
     type: new GraphQLList(User),
     args: {
