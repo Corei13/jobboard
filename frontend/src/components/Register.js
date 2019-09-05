@@ -14,8 +14,8 @@ const Register = ({ history }) => {
   const [alert, setAlert] = React.useState([]);
   const [role, setRole] = React.useState('candidate');
 
-  const firstName = React.useRef(null);
-  const lastName = React.useRef(null);
+  const first_name = React.useRef(null);
+  const last_name = React.useRef(null);
   const email = React.useRef(null);
   const password = React.useRef(null);
 
@@ -23,8 +23,8 @@ const Register = ({ history }) => {
     e.preventDefault();
     setValidated(true);
     const data = {
-      firstName: firstName.current.value.trim(),
-      lastName: lastName.current.value.trim(),
+      first_name: first_name.current.value.trim(),
+      last_name: last_name.current.value.trim(),
       email: email.current.value.trim(),
       password: await hash(password.current.value.trim()),
       role
@@ -68,8 +68,8 @@ const Register = ({ history }) => {
                 </div>
                 <Form.Group>
                   <InputGroup>
-                    <Form.Control ref={firstName} required size="lg" placeholder="First Name" />
-                    <Form.Control ref={lastName} required size="lg" placeholder="Last Name" />
+                    <Form.Control ref={first_name} required size="lg" placeholder="First Name" />
+                    <Form.Control ref={last_name} required size="lg" placeholder="Last Name" />
                   </InputGroup>
                 </Form.Group>
                 <Form.Group>

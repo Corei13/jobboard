@@ -1,8 +1,8 @@
 const jwt = require('jsonwebtoken');
 const crypto = require('crypto');
 
-const signToken = ({ id, email, firstName, lastName, role }) => new Promise(resolve =>
-  resolve(jwt.sign(JSON.stringify(({ id, email, firstName, lastName, role })), process.env.JWT_KEY)));
+const signToken = ({ id, email, first_name, last_name, role }) => new Promise(resolve =>
+  resolve(jwt.sign(JSON.stringify(({ id, email, first_name, last_name, role })), process.env.JWT_KEY)));
 
 const decodeJwt = ({ headers: { authorization } }) => new Promise((resolve, reject) => console.log({ authorization }) ||
   jwt.verify(authorization, process.env.JWT_KEY, (err, decoded) => err ? reject(err) : resolve(decoded))
