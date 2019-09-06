@@ -20,7 +20,7 @@ const graphql = async (gql, variables) => {
 
 export const signout = () => Cookies.remove('auth-token');
 
-export const signup = ({ email, firstName, lastName, password, role }) =>
+export const signup = ({ email, first_name, last_name, password, role }) =>
   graphql(`
     mutation ($data: SignUpData!) {
       SignUp(data: $data) {
@@ -30,16 +30,16 @@ export const signup = ({ email, firstName, lastName, password, role }) =>
             user {
               id
               email
-              firstName
-              lastName
+              first_name
+              last_name
             }
           }
           ... on Employer {
             user {
               id
               email
-              firstName
-              lastName
+              first_name
+              last_name
             }
             job {
               id
@@ -51,7 +51,7 @@ export const signup = ({ email, firstName, lastName, password, role }) =>
         }
       }
     }
-  `, { data: { email, firstName, lastName, password, role } })
+  `, { data: { email, first_name, last_name, password, role } })
     .then(({ SignUp }) => SignUp);
 
 export const signin = ({ email, password }) =>
@@ -64,8 +64,8 @@ export const signin = ({ email, password }) =>
             user {
               id
               email
-              firstName
-              lastName
+              first_name
+              last_name
             }
             profile {
               location
@@ -75,8 +75,8 @@ export const signin = ({ email, password }) =>
             user {
               id
               email
-              firstName
-              lastName
+              first_name
+              last_name
             }
             job {
               id
@@ -117,16 +117,18 @@ export const getCandidateProfile = () =>
       me {
         ... on Candidate {
           user {
-            firstName
-            lastName
+            first_name
+            last_name
           }
           profile {
             linkedin
             location
-            isUsResident
-            isSpecialCountry
-            isUsStudent
-            currentVisa
+            us_citizen
+            us_green_card
+            us_work_visa
+            us_student
+            uk_eu_citizen
+            special_citizen
             remote
             status {
               PersonalInfo
@@ -145,8 +147,8 @@ export const getCompanyProfile = () =>
       me {
         ... on Employer {
           user {
-            firstName
-            lastName
+            first_name
+            last_name
           }
           job {
             id
@@ -173,6 +175,27 @@ export const getCompanyProfile = () =>
   .then(({ me: { user, job: { id: job_id, company: { id: company_id, ...company }, ...job } } }) =>
     ({ ...user, company_id, job_id, ...company, ...job })
   );
+
+export const getJob = ({ companyId }) =>
+  graphql(`
+    query ($companyId: ID!) {
+      job (companyId: $companyId) {
+        id
+        applied
+        company {
+          name
+          url
+          logo 
+          size
+          about
+        }
+        location
+        remote
+        description
+      }
+    }
+  `, { companyId })
+  .then(({ job }) => job);
 
 export const getJobs = ({ offset, size }) =>
   graphql(`

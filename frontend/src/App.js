@@ -15,8 +15,7 @@ import Register from './components/Register';
 import Application from './components/Application';
 import CompanyDetails from './components/CompanyDetails';
 import Listing from './components/Listing';
-// import Apartments from './components/Apartments';
-// import Admin from './components/Admin';
+import JobDetails from './components/JobDetails';
 
 import { getCurrentUser } from './utils';
 // import { signout } from './actions';
@@ -30,13 +29,14 @@ const App = () => {
       <Router>
         <Route path="/" component={Header} />
 
-        <Route exact path="/" render={() => <Redirect to="/home" />} />
+        <Route exact path="/" render={() => <Redirect to="/jobs" />} />
         <Route path="/home" component={Home} />
         <Route path="/login" render={() => user ? <Redirect to="/" /> : <Login />} />
         <Route path="/register" component={() => user ? <Redirect to="/" /> : <Register />} />
         <Route path="/application" render={() => user && user.role === 'candidate' ? <Application />: <Redirect to="/login" />} />
         <Route path="/company-details" render={() => user && user.role === 'employer' ? <CompanyDetails />: <Redirect to="/login" />} />
         <Route path="/jobs" component={Listing} />
+        <Route path="/job-details/:companyId" component={JobDetails} />
 
       </Router>
     </Context.Auth.Provider>
