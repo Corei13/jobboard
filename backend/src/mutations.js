@@ -14,12 +14,12 @@ module.exports = {
     args: {
       data: { type: new GraphQLNonNull(SignUpData) },
     },
-    resolve: async (obj, { data: { email, firstName, lastName, password, role } }, { knex }) => {
+    resolve: async (obj, { data: { email, first_name, last_name, password, role } }, { knex }) => {
       try {
         const [id] = await knex('users').insert({
           email,
-          first_name: firstName,
-          last_name: lastName,
+          first_name,
+          last_name,
           password: await hash(password),
           role
         });
@@ -96,31 +96,37 @@ module.exports = {
       }
 
       const {
-        firstName,
-        lastName,
+        first_name,
+        last_name,
 
         linkedin,
 
         location,
-        isUsResident,
-        isSpecialCountry,
-        isUsStudent,
-        currentVisa,
+        us_citizen,
+        us_green_card,
+        us_work_visa,
+        us_student,
+        uk_eu_citizen,
+        special_citizen,
 
         remote,
 
         status
       } = data;
 
-      await knex$update(knex, 'users', { id }, { first_name: firstName, last_name: lastName });
+      await knex$update(knex, 'users', { id }, { first_name, last_name });
 
       await knex$update(knex, 'candidates', { user_id: id }, {
         linkedin,
         location,
-        us_resident: isUsResident,
-        special_country: isSpecialCountry,
-        us_student: isUsStudent,
-        current_visa: currentVisa,
+        citizenship: JSON.stringify({
+          us_citizen,
+          us_green_card,
+          us_work_visa,
+          us_student,
+          uk_eu_citizen,
+          special_citizen,
+        }),
 
         remote,
         status: JSON.stringify(status)
